@@ -1,9 +1,9 @@
 const { Sequelize } = require("sequelize");
-const { database, user, password, host } = require("./constants");
+const { dbName, dbUser, dbPassword, dbHost } = require("./constants");
 
 // connect to database
-const sequelize = new Sequelize(database, user, password, {
-  host,
+const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
+  dbHost,
   dialect: "mysql",
 });
 

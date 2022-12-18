@@ -4,15 +4,15 @@ const port = process.env.PORT || 8080;
 
 // database config
 
-const host = process.env.SERVER_HOST || "localhost";
-const database = process.env.DATABASR || "test";
-const user = process.env.USER || "";
-const password = process.env.PASSWD || "";
+const dbHost = process.env.DB_HOST || "localhost";
+const dbName = process.env.DB_NAME || "test";
+const dbUser = process.env.DB_USER || "";
+const dbPassword = process.env.DB_PASSWORD || "";
 
 module.exports = {
   port,
-  host,
-  database,
-  user,
-  password,
+  dbHost,
+  dbName,
+  dbUser,
+  dbPassword,
 };
