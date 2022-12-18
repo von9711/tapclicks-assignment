@@ -5,6 +5,7 @@
   "author": "none",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^16.0.3",
     "mysql2": "^2.3.3",
     "sequelize": "^6.27.0"
   }
