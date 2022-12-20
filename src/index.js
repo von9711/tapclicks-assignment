@@ -30,10 +30,8 @@ const processAllFiles = async () => {
   }
 };
 
-sequelize.sync({ alter: true }).then(() => {
+sequelize.sync({ force: true }).then(() => {
   console.log("sync done");
   //   processAllFiles();
-  addFileDataToDB(
-    "/home/avilio/program/tapclicks-assignment/src/data_files/Yashi_2016-05-30.csv"
-  );
+  addFileDataToDB(path.resolve("src/data_files/Yashi_2016-05-30.csv"));
 });
