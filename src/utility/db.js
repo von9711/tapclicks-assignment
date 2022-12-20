@@ -52,7 +52,7 @@ const generateLogFiles = async () => {
 
 const insertDataInDB = async (data) => {
   if (!data) return;
-  const [campaign, camp_created] = await Campaign.findOrCreate({
+  const [campaign] = await Campaign.findOrCreate({
     where: {
       yashiCampaignId: parseInt(data["Campaign ID"], 10),
     },
@@ -64,15 +64,6 @@ const insertDataInDB = async (data) => {
     },
   });
 
-  //   if (!campaign) {
-  //     campaign = await Campaign.create({
-  //       yashiCampaignId: parseInt(data["Campaign ID"]),
-  //       name: data["Campaign Name"],
-  //       advertiserId: parseInt(data["Advertiser ID"]),
-  //       advertiserName: data["Advertiser Name"],
-  //     });
-  //   }
-
   const [order] = await Order.findOrCreate({
     where: { yashiOrderId: parseInt(data["Order ID"], 10) },
     defaults: {
@@ -81,14 +72,6 @@ const insertDataInDB = async (data) => {
       campaignId: campaign.dataValues.campaignId,
     },
   });
-
-  //   if (!order) {
-  //     order.create({
-  //       yashiOrderId: parseInt(data["Order ID"]),
-  //       name: data["Order Name"],
-  //       campaignId: campaign.campaignId,
-  //     });
-  //   }
 
   const [creative, created] = await Creative.findOrCreate({
     where: { yashiCreativeId: parseInt(data["Creative ID"], 10) },
