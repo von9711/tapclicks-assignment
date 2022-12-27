@@ -17,14 +17,16 @@ const processAllFiles = async () => {
   try {
     const dirPath = path.resolve("src/data_files");
     const files = await fs.readdir(dirPath);
+    const urls = [];
 
     for (let file of files) {
       const fileDate = new Date(getDateString(file));
       if (fileDate.getMonth() === 4) {
-        const fileUrl = path.join(dirPath, file);
-        await addFileDataToDB(fileUrl);
+        urls.push(path.join(dirPath, file));
       }
     }
+
+    addFileDataToDB(urls);
   } catch (err) {
     console.log(err);
   }
@@ -32,6 +34,8 @@ const processAllFiles = async () => {
 
 sequelize.sync({ force: true }).then(() => {
   console.log("sync done");
-  //   processAllFiles();
-  addFileDataToDB(path.resolve("src/data_files/Yashi_2016-05-30.csv"));
+  processAllFiles();
+  // addFileDataToDB([
+  //   path.resolve("src/data_files/Yashi_2016-05-30.csv"),
+  // ]);
 });

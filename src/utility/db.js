@@ -21,69 +21,77 @@ sum(viewed100_count) as viewed100Count
 from ${table1} as t1 
 join ${table2} as t2
 on t1.${on} = t2.${on}
-group by ${groupBy}, log_date`;
+group by ${groupBy}, log_date
+order by log_date, ${groupBy}`;
 };
 
 const generateLogFiles = async () => {
-  const [creative_results] = await sequelize.query(
-    processLogFile(
-      "creatives",
-      "creative_logs",
-      "order_id",
-      "orderId",
-      "creative_id"
-    )
-  );
+  try {
+    const [creative_results] = await sequelize.query(
+      processLogFile(
+        "creatives",
+        "creative_logs",
+        "order_id",
+        "orderId",
+        "creative_id"
+      )
+    );
 
-  await OrderLog.bulkCreate(creative_results);
+    if (creative_results && creative_results.length > 0)
+      await OrderLog.bulkCreate(creative_results);
 
-  const [order_results] = await sequelize.query(
-    processLogFile(
-      "orders",
-      "order_logs",
-      "campaign_id",
-      "campaignId",
-      "order_id"
-    )
-  );
+    const [order_results] = await sequelize.query(
+      processLogFile(
+        "orders",
+        "order_logs",
+        "campaign_id",
+        "campaignId",
+        "order_id"
+      )
+    );
 
-  await CampaignLog.bulkCreate(order_results);
+    if (order_results && order_results.length > 0)
+      await CampaignLog.bulkCreate(order_results);
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const insertDataInDB = async (data) => {
   if (!data) return;
-  const [campaign] = await Campaign.findOrCreate({
-    where: {
-      yashiCampaignId: parseInt(data["Campaign ID"], 10),
-    },
-    defaults: {
-      yashiCampaignId: parseInt(data["Campaign ID"], 10),
-      name: data["Campaign Name"],
-      advertiserId: parseInt(data["Advertiser ID"], 10),
-      advertiserName: data["Advertiser Name"],
-    },
-  });
 
-  const [order] = await Order.findOrCreate({
-    where: { yashiOrderId: parseInt(data["Order ID"], 10) },
-    defaults: {
-      yashiOrderId: parseInt(data["Order ID"], 10),
-      name: data["Order Name"],
-      campaignId: campaign.dataValues.campaignId,
-    },
-  });
+  try {
+    const [campaign] = await Campaign.findOrCreate({
+      where: {
+        yashiCampaignId: parseInt(data["Campaign ID"], 10),
+      },
+      defaults: {
+        yashiCampaignId: parseInt(data["Campaign ID"], 10),
+        name: data["Campaign Name"],
+        advertiserId: parseInt(data["Advertiser ID"], 10),
+        advertiserName: data["Advertiser Name"],
+      },
+    });
 
-  const [creative, created] = await Creative.findOrCreate({
-    where: { yashiCreativeId: parseInt(data["Creative ID"], 10) },
-    defaults: {
-      yashiCreativeId: parseInt(data["Creative ID"], 10),
-      name: data["Creative Name"],
-      previewUrl: data["Creative Preview URL"],
-      orderId: order.dataValues.orderId,
-    },
-  });
+    const [order] = await Order.findOrCreate({
+      where: { yashiOrderId: parseInt(data["Order ID"], 10) },
+      defaults: {
+        yashiOrderId: parseInt(data["Order ID"], 10),
+        name: data["Order Name"],
+        campaignId: campaign.dataValues.campaignId,
+      },
+    });
 
-  if (created) {
+    const [creative, created] = await Creative.findOrCreate({
+      where: { yashiCreativeId: parseInt(data["Creative ID"], 10) },
+      defaults: {
+        yashiCreativeId: parseInt(data["Creative ID"], 10),
+        name: data["Creative Name"],
+        previewUrl: data["Creative Preview URL"],
+        orderId: order.dataValues.orderId,
+      },
+    });
+
     await CreativeLog.create({
       logDate: new Date(data["Date"]),
       impressionCount: parseInt(data["Impressions"], 10),
@@ -94,11 +102,22 @@ const insertDataInDB = async (data) => {
       viewed100Count: parseInt(data["100% Viewed"], 10),
       creativeId: creative.dataValues.creativeId,
     });
+  } catch (err) {
+    console.log(err);
   }
 };
 
-const processFiles = async (fileUrl) => {
+const addFileDataToDB = async (fileUrls) => {
+  if (!fileUrls || fileUrls?.length === 0) {
+    await generateLogFiles();
+
+    return;
+  }
+
+  const fileUrl = fileUrls.shift();
+
   const data = [];
+
   fs.createReadStream(fileUrl)
     .pipe(csv())
     .on("data", async (row) => {
@@ -110,14 +129,12 @@ const processFiles = async (fileUrl) => {
       for (let row of data) {
         await insertDataInDB(row);
       }
-      await generateLogFiles();
+
+      addFileDataToDB(fileUrls);
+    })
+    .catch((err) => {
+      console.log(err);
     });
-};
-
-const addFileDataToDB = async (fileUrl) => {
-  if (!fileUrl) return;
-
-  await processFiles(fileUrl);
 };
 
 module.exports = {
