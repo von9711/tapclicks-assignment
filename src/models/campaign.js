@@ -13,7 +13,6 @@ Campaign.init(
     yashiCampaignId: {
       type: DataTypes.INTEGER,
       defaultValue: null,
-      unique: true,
     },
     name: {
       type: DataTypes.STRING,

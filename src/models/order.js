@@ -14,7 +14,6 @@ Order.init(
     yashiOrderId: {
       type: DataTypes.INTEGER,
       defaultValue: null,
-      unique: true,
     },
     name: {
       type: DataTypes.STRING,
